@@ -17,7 +17,9 @@ class Command():
   
   def send(self, text):
     self.bot.send(self.data["id"], text)
-
+  
+  def runGame(self, command, *args, **kwargs):
+    return self.bot.game(command, self.data, *args, **kwargs)
 
 class SplitCommand(Command):
   def validate(self, text):

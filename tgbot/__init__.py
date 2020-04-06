@@ -5,12 +5,14 @@
 import telebot
 from telebot import types
 from .Command import Command, SplitCommand
+from .Game import Game
 
 class Bot():
-  def __init__(self, token):
+  def __init__(self, token, handle):
     self.admin = "c4p1" # password of admin
     self.bot = telebot.TeleBot(token)
     self.bot.set_update_listener(self.listener)
+    self.handle = handle(self) # game handle
     self.commands = []
     self.active = True
   
@@ -24,14 +26,25 @@ class Bot():
         name = m.from_user.first_name
         group = True
       text = m.text
+      error=False
       try:
         cmd=self.searchCommand(text)
       except ValueError:
+        error=True
+      else:
+        cmd.data = dict(id=id, name=name, text=text)
+        return cmd.run()
+      
+      # buscamos si no existe un comando de usuario:
+      try:
+        method, data = self.handle.user["command"][text]
+      except KeyError:
         info = "no te entiendo."
         self.bot.send_message(id, info)
       else:
-        cmd.data = dict(id=id, name=name, text=text)
-        cmd.run()
+        self.handle.data = dict(id=id, name=name, text=text)
+        getattr(self.handle, method)(*data)
+
   
   def         searchCommand(self, text):
     for obj in self.commands:
@@ -54,6 +67,10 @@ class Bot():
     while self.active:
       pass
     print("terminated bot.")
+  
+  def game(self, command, data, *args, **kwargs):
+    self.handle.data = data
+    return getattr(self.handle, command)(*args, **kwargs)
 
-def init(token):
-  return Bot(token)
+def init(token, handle=None):
+  return Bot(token, handle)
