@@ -8,6 +8,10 @@ class Game():
     self.bot = bot
     self.data = {}
     self.user = {}
+  
+  def newUser(self, id):
+    self.user = {}
+    self.user["id"] = id
     self.user["command"] = {}
   
   def send(self, text):
@@ -15,3 +19,4 @@ class Game():
   
   def setCommand(self, key, value, *args):
     self.user["command"][key] = (value, args)
+    self.bot.saveUser()

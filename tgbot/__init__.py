@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 #
 # Copyright 2020: Miguel Barraza
+import pickle
 import telebot
 from telebot import types
 from .Command import Command, SplitCommand
@@ -26,6 +27,7 @@ class Bot():
         name = m.from_user.first_name
         group = True
       text = m.text
+      self.loadUser(id)
       error=False
       try:
         cmd=self.searchCommand(text)
@@ -44,7 +46,6 @@ class Bot():
       else:
         self.handle.data = dict(id=id, name=name, text=text)
         getattr(self.handle, method)(*data)
-
   
   def         searchCommand(self, text):
     for obj in self.commands:
@@ -71,6 +72,23 @@ class Bot():
   def game(self, command, data, *args, **kwargs):
     self.handle.data = data
     return getattr(self.handle, command)(*args, **kwargs)
+  
+  def saveUser(self):
+    f = open("user/"+self.handle.user["id"], "wb")
+    pickle.dump(self.handle.user, f)
+    f.close()
+  
+  def loadUser(self, id):
+    id = str(id)
+    try:
+      f = open("user/"+id, "rb")
+    except FileNotFoundError:
+      self.handle.newUser(id)
+      self.saveUser()
+    else:
+      self.handle.user = pickle.load(f)
+      f.close()
+
 
 def init(token, handle=None):
   return Bot(token, handle)
